@@ -17,7 +17,7 @@ trainer_unsup:
   early_stopping : True
   model_name : checkpoint
   loss_fn : rl
-  n_epochs : 5
+  n_epochs : 3
   train_n_layers : 2
   checkpoint_path : experiments\exp1_supervised_all
   log_interval : 400
@@ -36,7 +36,8 @@ trainer_sup:
   enabled : True
   model_name : checkpoint
   loss_fn : nll
-  n_epochs : 150
+  n_epochs : 5
+  train_part_i : 2
   checkpoint_path : experiments\exp1_supervised_all
   log_interval : 400
   finetune_n_layers : all

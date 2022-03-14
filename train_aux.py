@@ -4,6 +4,7 @@ from contextlib import redirect_stdout
 from tools.logging import log_print
 from os import path
 import numpy as np
+import torch
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -24,6 +25,7 @@ if __name__ == "__main__":
             
         # Load model
         model = utils.load_model(**cfg.model)
+        model.load_state_dict(torch.load(cfg.model.weights_path))
         part_manager = parts.PartManager(model)
         for i in range(i_part):
             part_manager.enable_part(i)
@@ -31,7 +33,7 @@ if __name__ == "__main__":
         part_manager.train_part_i = i_part
         
         trn = trainer.ModelTrainer(model=model, cfg=cfg.trainer_sup, part_manager=part_manager)
-        trn.set_aux_layer(part_manager.parts[i_part], size_multiplier=25)
+        trn.set_aux_layer(part_manager.parts[i_part], size_multiplier=1)
         trn.train(train_loader=train_loader_sup, val_loader=val_loader_sup)
         
         

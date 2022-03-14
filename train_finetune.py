@@ -56,6 +56,7 @@ if __name__ == "__main__":
                 for i in range(0 if cfg.trainer_sup.finetune_n_layers == 'all' else n_parts - cfg.trainer_sup.finetune_n_layers, n_parts): # 
                     part_manager.enable_part_training(i)
                 
+                part_manager.train_part_i = cfg.trainer_sup.train_part_i
                 trn = trainer.ModelTrainer(model=model, cfg=cfg.trainer_sup, part_manager=part_manager)
                 trn.train(train_loader=train_loader_sup, val_loader=val_loader_sup)
                 

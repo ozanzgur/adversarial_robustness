@@ -98,13 +98,17 @@ class ModelTrainer:
             for batch_idx, (X_batch, y_batch) in enumerate(train_loader):
                 self.optimizer.zero_grad()
                 output = self.model(X_batch.to(self.device))
-
+                
                 loss = None
                 if self.config.loss_fn == 'nll':
                     loss = nll(output, y_batch.to(self.device))
+                    
+                    for i_part in range(self.part_manager.train_part_i + 1):
+                        loss += self.part_reconstruction_loss(self.part_manager.parts[i_part]) * 10
                 elif self.config.loss_fn == 'aux':
                     i_part = self.part_manager.train_part_i
                     loss = self.model_aux_loss(self.part_manager.parts[i_part])
+                    
                 else:
                     raise AttributeError("config.trainer.loss_fn is invalid.")
 
@@ -131,6 +135,9 @@ class ModelTrainer:
                         loss = None
                         if self.config.loss_fn == 'nll':
                             loss = nll(output, y_batch.to(self.device))
+                            
+                            for i_part in range(self.part_manager.train_part_i + 1):
+                                loss += self.part_reconstruction_loss(self.part_manager.parts[i_part])
                         elif self.config.loss_fn == 'aux':
                             i_part = self.part_manager.train_part_i
                             loss = self.model_aux_loss(self.part_manager.parts[i_part])
