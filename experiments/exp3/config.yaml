@@ -37,7 +37,7 @@ trainer_sup:
   part_reconstruction_loss_multiplier : 5
   model_name : checkpoint
   loss_fn : nll
-  n_epochs : 5
+  n_epochs : 10
   train_part_i : 2
   checkpoint_path : experiments\exp1_supervised_all
   log_interval : 400

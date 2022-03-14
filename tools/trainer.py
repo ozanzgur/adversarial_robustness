@@ -104,7 +104,7 @@ class ModelTrainer:
                     loss = nll(output, y_batch.to(self.device))
                     
                     for i_part in range(self.part_manager.train_part_i + 1):
-                        loss += self.part_reconstruction_loss(self.part_manager.parts[i_part]) * 10
+                        loss += self.part_reconstruction_loss(self.part_manager.parts[i_part]) * self.config.part_reconstruction_loss_multiplier
                 elif self.config.loss_fn == 'aux':
                     i_part = self.part_manager.train_part_i
                     loss = self.model_aux_loss(self.part_manager.parts[i_part])
@@ -137,7 +137,7 @@ class ModelTrainer:
                             loss = nll(output, y_batch.to(self.device))
                             
                             for i_part in range(self.part_manager.train_part_i + 1):
-                                loss += self.part_reconstruction_loss(self.part_manager.parts[i_part])
+                                loss += self.part_reconstruction_loss(self.part_manager.parts[i_part]) * self.config.part_reconstruction_loss_multiplier
                         elif self.config.loss_fn == 'aux':
                             i_part = self.part_manager.train_part_i
                             loss = self.model_aux_loss(self.part_manager.parts[i_part])

@@ -1,5 +1,5 @@
-script_path: train_finetune.py
-n_repeat : 1
+script_path: train_finetune_adv.py
+n_repeat : 3
 data_unsupervised:
   path : data\cifar10.py
   batch_size : 20
@@ -9,7 +9,7 @@ data_supervised:
   batch_size : 25
   loader_sizes : [45000, 5000]
 model:
-  path : model\net4.py
+  path : model\net5.py
   module_name : Net
 
 trainer_unsup:
@@ -17,9 +17,9 @@ trainer_unsup:
   early_stopping : True
   model_name : checkpoint
   loss_fn : rl
-  n_epochs : 3
+  n_epochs : 5
   train_n_layers : 2
-  checkpoint_path : experiments\exp1_supervised_all
+  checkpoint_path : experiments\exp5_net5
   log_interval : 400
   optimizer:
     name : SGD
@@ -34,12 +34,12 @@ trainer_unsup:
 trainer_sup:
   early_stopping : True
   enabled : True
-  part_reconstruction_loss_multiplier : 5
+  part_reconstruction_loss_multiplier : 10
   model_name : checkpoint
   loss_fn : nll
-  n_epochs : 5
+  n_epochs : 20
   train_part_i : 2
-  checkpoint_path : experiments\exp1_supervised_all
+  checkpoint_path : experiments\exp5_net5
   log_interval : 400
   finetune_n_layers : all
   optimizer:
