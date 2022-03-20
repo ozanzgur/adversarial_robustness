@@ -101,10 +101,11 @@ class ModelTrainer:
                 
                 loss = None
                 if self.config.loss_fn == 'nll':
-                    loss = nll(output, y_batch.to(self.device))
+                    loss = nll(output, y_batch.to(self.device)) + self.conv_excitation_loss() * 0.01
                     
-                    for i_part in range(self.part_manager.train_part_i + 1):
-                        loss += self.part_reconstruction_loss(self.part_manager.parts[i_part]) * self.config.part_reconstruction_loss_multiplier
+                    if self.config.part_reconstruction_loss_multiplier > 0:
+                        for i_part in range(self.part_manager.train_part_i + 1):
+                            loss += self.part_reconstruction_loss(self.part_manager.parts[i_part]) * self.config.part_reconstruction_loss_multiplier
                 elif self.config.loss_fn == 'aux':
                     i_part = self.part_manager.train_part_i
                     loss = self.model_aux_loss(self.part_manager.parts[i_part])
@@ -134,10 +135,11 @@ class ModelTrainer:
                         
                         loss = None
                         if self.config.loss_fn == 'nll':
-                            loss = nll(output, y_batch.to(self.device))
+                            loss = nll(output, y_batch.to(self.device)) + self.conv_excitation_loss() * 0.01
                             
-                            for i_part in range(self.part_manager.train_part_i + 1):
-                                loss += self.part_reconstruction_loss(self.part_manager.parts[i_part]) * self.config.part_reconstruction_loss_multiplier
+                            if self.config.part_reconstruction_loss_multiplier > 0:
+                                for i_part in range(self.part_manager.train_part_i + 1):
+                                    loss += self.part_reconstruction_loss(self.part_manager.parts[i_part]) * self.config.part_reconstruction_loss_multiplier
                         elif self.config.loss_fn == 'aux':
                             i_part = self.part_manager.train_part_i
                             loss = self.model_aux_loss(self.part_manager.parts[i_part])
@@ -231,7 +233,7 @@ class ModelTrainer:
         return getattr(part.get_conv_layer(), SAVED_OUTPUT_NAME).clone()
     
     def get_reconstruction(seif, part):
-        rec = getattr(part.get_conv_layer(), SAVED_OUTPUT_NAME).clone()
+        rec = getattr(part.get_loss_end_layer(), SAVED_OUTPUT_NAME).clone()
         
         # A typical part in resnet has 3 layers:
         # - pooling (optional)
@@ -277,6 +279,9 @@ class ModelTrainer:
     def part_gram_matrix_loss(self, part):
         activations = getattr(part.get_loss_end_layer(), SAVED_OUTPUT_NAME)
         return gram_matrix_loss(activations)
+    
+    def conv_excitation_loss(self):
+        return self.model.se1.sigmoid_output.sum() + self.model.se2.sigmoid_output.sum() + self.model.se3.sigmoid_output.sum()
     
     def get_reconstruction_channelwise(seif, part):
         rec = getattr(part.get_loss_end_layer(), SAVED_OUTPUT_NAME).clone()

@@ -5,8 +5,10 @@ from tools.logging import log_print
 from os import path
 import numpy as np
 
+import torch
 import torchattacks
 from tqdm import tqdm
+import yaml
 
 def get_accuracy(model, device, test_loader, attack_on = True):
     correct = 0
@@ -28,6 +30,31 @@ def get_accuracy(model, device, test_loader, attack_on = True):
     acc = correct / n_examples
     return acc
 
+from autoattack import AutoAttack
+
+def get_acc_autoattack(model, device, loader):
+    correct = 0
+    n_examples = 0
+
+    adversary = AutoAttack(model, norm='Linf', eps=8/255, version='custom', attacks_to_run=['apgd-ce', 'apgd-dlr'])
+    x_all = []
+    y_all = []
+    for x, y in loader:
+        x_all.append(x)
+        y_all.append(y)
+        n_examples += x.shape[0]
+        
+    x_all = torch.concat(x_all, dim=0).to(device)
+    y_all = torch.concat(y_all, dim=0).to(device)
+    
+    SAMPLE_SIZE = 1000
+    np.random.seed(42)
+    sample_idx = np.random.choice(range(SAMPLE_SIZE), SAMPLE_SIZE, replace=False)
+    x_all = x_all[sample_idx]
+    y_all = y_all[sample_idx]
+        
+    _ = adversary.run_standard_evaluation(x_all, y_all, bs=25)
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("c")
@@ -38,6 +65,10 @@ if __name__ == "__main__":
     # Load config
     cfg = config.from_yaml(args.c)            
     with log_print(open(path.join(cfg.trainer_sup.checkpoint_path, "log.txt"), 'w')):
+        print("Experiment Config:\n")
+        print(yaml.safe_dump(cfg))
+        print("########################################")
+        
         metrics = []
         metrics_adv = []
         
@@ -51,12 +82,12 @@ if __name__ == "__main__":
         # Unsupervised dataset
         train_loader, val_loader = dataset_unsup.get_train_loader(**cfg.data_unsupervised)
         for i_run in range(cfg.n_repeat):
-            print(f"UNSUPERVISED TRAINING {i_run + 1}/{cfg.n_repeat}")
             
             # Load model
             model = utils.load_model(**cfg.model)
             
-            if cfg.trainer_unsup.enabled:
+            if hasattr(cfg, 'trainer_unsup') and cfg.trainer_unsup.enabled:
+                print(f"UNSUPERVISED TRAINING {i_run + 1}/{cfg.n_repeat}")
                  # Load dataset
                 dataset_unsup.torch_seed()
                 part_manager = parts.PartManager(model)
@@ -89,14 +120,17 @@ if __name__ == "__main__":
             
                 # Test
                 
-                accuracy = trn.test_accuracy(test_loader_sup)
+                """accuracy = trn.test_accuracy(test_loader_sup)
                 print(f"Accuracy: {accuracy}")
                 metrics.append(accuracy)
+                adv_accuracy = get_accuracy(model, trn.device, test_loader_sup, attack_on = True)
+                print(f"Adv. Accuracy: {adv_accuracy}")
+                metrics_adv.append(adv_accuracy)"""
                 
-                metrics_adv.append(get_accuracy(model, trn.device, test_loader_sup, attack_on = True))
+                get_acc_autoattack(model, trn.device, test_loader_sup)
             
-        print(f'Metrics:\n{metrics}, Mean: {np.mean(metrics)}')
-        print(f'Metrics adv:\n{metrics_adv}, Mean: {np.mean(metrics_adv)}')
+        # print(f'Metrics:\n{metrics}, Mean: {np.mean(metrics)}')
+        # print(f'Metrics adv:\n{metrics_adv}, Mean: {np.mean(metrics_adv)}')
         
         
         

@@ -1,5 +1,5 @@
 script_path: train_finetune_adv.py
-n_repeat : 3
+n_repeat : 2
 data_unsupervised:
   path : data\cifar10.py
   batch_size : 20

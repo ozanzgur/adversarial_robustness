@@ -15,12 +15,12 @@ model:
 trainer_sup:
   early_stopping : True
   enabled : True
-  part_reconstruction_loss_multiplier : 15
+  part_reconstruction_loss_multiplier : 10
   model_name : checkpoint
   loss_fn : nll
   n_epochs : 5
   train_part_i : 2
-  checkpoint_path : experiments\exp6_net5
+  checkpoint_path : experiments\exp8_net5
   log_interval : 400
   finetune_n_layers : all
   optimizer:

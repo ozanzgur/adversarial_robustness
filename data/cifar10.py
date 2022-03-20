@@ -11,8 +11,7 @@ def get_train_loader(batch_size=10, loader_sizes = None, **kwargs):
     dataset = torchvision.datasets.CIFAR10('/files/', train=True, download=True,
                                 transform=torchvision.transforms.Compose([
                                 torchvision.transforms.Resize((32, 32)),
-                                torchvision.transforms.ToTensor(),
-                                torchvision.transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
+                                torchvision.transforms.ToTensor()])
                                 )
     
     print(len(dataset))
@@ -37,8 +36,8 @@ def get_test_loader(batch_size=10, **kwargs):
     torchvision.datasets.CIFAR10('/files/', train=False, download=True,
                                 transform=torchvision.transforms.Compose([
                                 torchvision.transforms.Resize((32, 32)),
-                                torchvision.transforms.ToTensor(),
-                                torchvision.transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
+                                torchvision.transforms.ToTensor()
+                                ])
                                 ),
     batch_size=batch_size, shuffle=True)
     
@@ -46,8 +45,8 @@ def get_train_dataset(**kwargs):
     train_dataset = torchvision.datasets.CIFAR10('/files/', train=False, download=True,
                                 transform=torchvision.transforms.Compose([
                                 torchvision.transforms.Resize((32, 32)),
-                                torchvision.transforms.ToTensor(),
-                                torchvision.transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
+                                torchvision.transforms.ToTensor()
+                                ])
                                 )
     return train_dataset
 
@@ -55,6 +54,6 @@ def get_test_dataset(**kwargs):
     return torchvision.datasets.CIFAR10('/files/', train=False, download=True,
                                 transform=torchvision.transforms.Compose([
                                 torchvision.transforms.Resize((32, 32)),
-                                torchvision.transforms.ToTensor(),
-                                torchvision.transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
+                                torchvision.transforms.ToTensor()
+                                ])
                                 )
