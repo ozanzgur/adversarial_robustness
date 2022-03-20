@@ -101,7 +101,7 @@ class ModelTrainer:
                 
                 loss = None
                 if self.config.loss_fn == 'nll':
-                    loss = nll(output, y_batch.to(self.device)) + self.conv_excitation_loss() * 0.01
+                    loss = nll(output, y_batch.to(self.device)) + self.conv_excitation_loss() * 0.0001
                     
                     if self.config.part_reconstruction_loss_multiplier > 0:
                         for i_part in range(self.part_manager.train_part_i + 1):
@@ -135,7 +135,7 @@ class ModelTrainer:
                         
                         loss = None
                         if self.config.loss_fn == 'nll':
-                            loss = nll(output, y_batch.to(self.device)) + self.conv_excitation_loss() * 0.01
+                            loss = nll(output, y_batch.to(self.device)) + self.conv_excitation_loss() * 0.0001
                             
                             if self.config.part_reconstruction_loss_multiplier > 0:
                                 for i_part in range(self.part_manager.train_part_i + 1):
