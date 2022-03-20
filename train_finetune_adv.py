@@ -53,7 +53,7 @@ def get_acc_autoattack(model, device, loader):
     x_all = x_all[sample_idx]
     y_all = y_all[sample_idx]
         
-    _ = adversary.run_standard_evaluation(x_all, y_all, bs=25)
+    _ = adversary.run_standard_evaluation(x_all, y_all, bs=250)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -127,6 +127,7 @@ if __name__ == "__main__":
                 print(f"Adv. Accuracy: {adv_accuracy}")
                 metrics_adv.append(adv_accuracy)"""
                 
+                model.eval()
                 get_acc_autoattack(model, trn.device, test_loader_sup)
             
         # print(f'Metrics:\n{metrics}, Mean: {np.mean(metrics)}')

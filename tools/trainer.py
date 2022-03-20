@@ -101,7 +101,7 @@ class ModelTrainer:
                 
                 loss = None
                 if self.config.loss_fn == 'nll':
-                    loss = nll(output, y_batch.to(self.device)) + self.conv_excitation_loss() * 0.0001
+                    loss = nll(output, y_batch.to(self.device)) + self.conv_excitation_loss()
                     
                     if self.config.part_reconstruction_loss_multiplier > 0:
                         for i_part in range(self.part_manager.train_part_i + 1):
@@ -127,6 +127,7 @@ class ModelTrainer:
             if val_loader is not None:
                 val_loss = 0
                 n_total_examples = 0
+                cls_loss = 0
                 with torch.no_grad():
                     for X_batch, y_batch in val_loader:
                         n_examples = X_batch.size()[0]
@@ -135,7 +136,9 @@ class ModelTrainer:
                         
                         loss = None
                         if self.config.loss_fn == 'nll':
-                            loss = nll(output, y_batch.to(self.device)) + self.conv_excitation_loss() * 0.0001
+                            loss = nll(output, y_batch.to(self.device)) 
+                            cls_loss += loss
+                            loss = loss + self.conv_excitation_loss()
                             
                             if self.config.part_reconstruction_loss_multiplier > 0:
                                 for i_part in range(self.part_manager.train_part_i + 1):
@@ -146,10 +149,11 @@ class ModelTrainer:
                         val_loss += loss * n_examples
                     
                     val_loss = val_loss / n_total_examples
+                    cls_loss = cls_loss / n_total_examples
                     if val_loss < best_val_loss:
                         best_val_loss = val_loss
                         self.save_model()
-                    print(f"Val Loss: {val_loss} (Best: {best_val_loss})")
+                    print(f"Val Loss: {val_loss}, cls_loss: {cls_loss} (Best: {best_val_loss})")
                     
                     if not self.es is None and self.es.step(val_loss):
                         break
@@ -280,9 +284,6 @@ class ModelTrainer:
         activations = getattr(part.get_loss_end_layer(), SAVED_OUTPUT_NAME)
         return gram_matrix_loss(activations)
     
-    def conv_excitation_loss(self):
-        return self.model.se1.sigmoid_output.sum() + self.model.se2.sigmoid_output.sum() + self.model.se3.sigmoid_output.sum()
-    
     def get_reconstruction_channelwise(seif, part):
         rec = getattr(part.get_loss_end_layer(), SAVED_OUTPUT_NAME).clone()
         
@@ -352,6 +353,11 @@ class ModelTrainer:
         
         self.channel_losses = [c.cpu().detach().numpy().item() for c in channel_losses]
         return (total_channel_loss / n_channels)
+    
+    
+    def conv_excitation_loss(self):
+        return (self.model.se1.sigmoid_output1.sum() + self.model.se2.sigmoid_output1.sum() + self.model.se3.sigmoid_output.sum() +\
+            self.model.se1.sigmoid_output2.sum() + self.model.se2.sigmoid_output2.sum()) * 0.00003
 
 def torch_cos_similarity_loss(x1, x2):
     #return - torch.log(F.cosine_similarity(x1.flatten(start_dim=2), x2.flatten(start_dim=2), dim=2, eps=1e-5) + 1e-3).mean(axis=1).mean()
