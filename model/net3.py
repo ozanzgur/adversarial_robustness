@@ -5,12 +5,25 @@ import torch.nn.functional as F
 import torch.optim as optim
 from torch.nn.utils import weight_norm
 
+def sigmoid_quantize_sparse(x, thresholds):
+    output = torch.zeros(size=[x.shape[0], 30, x.shape[-2], x.shape[-1]]).cuda()
+    for ch in range(3):
+        for i, th in enumerate(thresholds):
+            output[:, ch * i] = sigmoid(x[:, ch, :, :], mean=th)
+            
+    return output
+        
+def sigmoid(x, multiplier = 1000, mean = 0):
+    return 1 / (1 + torch.exp(-(x - mean) * multiplier))
+
 class Net(nn.Module):
     def __init__(self, **kwargs):
-        n_kernels = 40
-        
+        n_kernels = 20
         super(Net, self).__init__()
-        self.conv1 = nn.Conv2d(1, n_kernels, kernel_size=5, bias = True)
+        
+        self.thresholds = torch.tensor([0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9], requires_grad=False).cuda()
+        
+        self.conv1 = nn.Conv2d(30, n_kernels, kernel_size=5, bias = True)
         self.bn1 = nn.BatchNorm2d(n_kernels)
         self.relu1 = nn.ReLU()
         self.pool1 = nn.MaxPool2d(2)
@@ -24,6 +37,7 @@ class Net(nn.Module):
         self.softmax = nn.LogSoftmax()
 
     def forward(self, x):
+        x = sigmoid_quantize_sparse(x)
         conv1_out = self.conv1(x)
         conv1_out = self.bn1(conv1_out)
         relu1_out = self.relu1(conv1_out)

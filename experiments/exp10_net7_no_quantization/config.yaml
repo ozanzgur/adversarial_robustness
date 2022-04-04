@@ -1,5 +1,5 @@
-script_path: train_aux.py
-n_repeat : 1
+script_path: train_finetune_adv.py
+n_repeat : 3
 data_unsupervised:
   path : data\cifar10.py
   batch_size : 20
@@ -7,26 +7,26 @@ data_unsupervised:
 data_supervised:
   path : data\cifar10.py
   batch_size : 25
-  loader_sizes : [10000, 40000]
+  loader_sizes : [45000, 5000]
 model:
-  path : model\net4.py
+  path : experiments\exp10_net7_no_quantization\net7_tiny.py
   module_name : Net
-  weights_path : experiments\exp1_supervised_all\checkpoint.pth
 
 trainer_sup:
   early_stopping : True
-  train_part_i : 1
+  enabled : True
+  part_reconstruction_loss_multiplier : 0
   model_name : checkpoint
-  loss_fn : aux
-  n_epochs : 1
-  checkpoint_path : experiments\exp1_supervised_all_aux
+  loss_fn : nll
+  n_epochs : 5
+  train_part_i : 2
+  checkpoint_path : experiments\exp10_net7_no_quantization
   log_interval : 400
   finetune_n_layers : all
   optimizer:
     name : Adam
     #momentum : 0.5
     lr : 0.003
-    #weight_decay : 0.01
   lr_scheduler:
     name : LinearLR
     start_factor : 1.0

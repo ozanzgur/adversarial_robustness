@@ -32,11 +32,17 @@ def get_accuracy(model, device, test_loader, attack_on = True):
 
 from autoattack import AutoAttack
 
-def get_acc_autoattack(model, device, loader):
+def get_acc_autoattack(model, device, loader, fast = True):
     correct = 0
     n_examples = 0
 
-    adversary = AutoAttack(model, norm='Linf', eps=8/255, version='custom', attacks_to_run=['apgd-ce', 'apgd-dlr'])
+    adversary = None
+    
+    if fast:
+        adversary = AutoAttack(model, norm='Linf', eps=8/255, version='custom', attacks_to_run=['apgd-ce', 'apgd-dlr'])
+    else:
+        adversary = AutoAttack(model, norm='Linf', eps=8/255)
+        
     x_all = []
     y_all = []
     for x, y in loader:
@@ -128,7 +134,10 @@ if __name__ == "__main__":
                 metrics_adv.append(adv_accuracy)"""
                 
                 model.eval()
-                get_acc_autoattack(model, trn.device, test_loader_sup)
+                
+                is_fast = (not "adv_is_fast" in cfg) or cfg.adv_is_fast
+                print(f"Autoattack fast version: {is_fast}")
+                get_acc_autoattack(model, trn.device, test_loader_sup, fast=is_fast)
             
         # print(f'Metrics:\n{metrics}, Mean: {np.mean(metrics)}')
         # print(f'Metrics adv:\n{metrics_adv}, Mean: {np.mean(metrics_adv)}')

@@ -101,11 +101,11 @@ class ModelTrainer:
                 
                 loss = None
                 if self.config.loss_fn == 'nll':
-                    loss = nll(output, y_batch.to(self.device)) + self.conv_excitation_loss()
+                    loss = nll(output, y_batch.to(self.device))# + self.conv_excitation_loss()
                     
-                    if self.config.part_reconstruction_loss_multiplier > 0:
+                    """if self.config.part_reconstruction_loss_multiplier > 0:
                         for i_part in range(self.part_manager.train_part_i + 1):
-                            loss += self.part_reconstruction_loss(self.part_manager.parts[i_part]) * self.config.part_reconstruction_loss_multiplier
+                            loss += self.part_reconstruction_loss(self.part_manager.parts[i_part]) * self.config.part_reconstruction_loss_multiplier"""
                 elif self.config.loss_fn == 'aux':
                     i_part = self.part_manager.train_part_i
                     loss = self.model_aux_loss(self.part_manager.parts[i_part])
@@ -126,6 +126,7 @@ class ModelTrainer:
             # Validation
             if val_loader is not None:
                 val_loss = 0
+                cls_loss = 0
                 n_total_examples = 0
                 cls_loss = 0
                 with torch.no_grad():
@@ -135,18 +136,20 @@ class ModelTrainer:
                         output = self.model(X_batch.to(self.device))
                         
                         loss = None
+                        cls_loss_batch = None
                         if self.config.loss_fn == 'nll':
-                            loss = nll(output, y_batch.to(self.device)) 
-                            cls_loss += loss
-                            loss = loss + self.conv_excitation_loss()
+                            cls_loss_batch = nll(output, y_batch.to(self.device))
+                            loss = cls_loss_batch
+                            #loss = loss + self.conv_excitation_loss()
                             
-                            if self.config.part_reconstruction_loss_multiplier > 0:
+                            """if self.config.part_reconstruction_loss_multiplier > 0:
                                 for i_part in range(self.part_manager.train_part_i + 1):
-                                    loss += self.part_reconstruction_loss(self.part_manager.parts[i_part]) * self.config.part_reconstruction_loss_multiplier
+                                    loss += self.part_reconstruction_loss(self.part_manager.parts[i_part]) * self.config.part_reconstruction_loss_multiplier"""
                         elif self.config.loss_fn == 'aux':
                             i_part = self.part_manager.train_part_i
                             loss = self.model_aux_loss(self.part_manager.parts[i_part])
                         val_loss += loss * n_examples
+                        cls_loss += cls_loss_batch * n_examples
                     
                     val_loss = val_loss / n_total_examples
                     cls_loss = cls_loss / n_total_examples

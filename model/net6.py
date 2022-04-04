@@ -97,7 +97,7 @@ class SEBlock2(nn.Module):
             y = x.clone()
             y = y.mean(axis=0)
             y = y.unsqueeze(0).unsqueeze(-1).unsqueeze(-1)
-            y[y<0.03] = 0
+            #y[y<0.03] = 0
             in_block1 = y * in_block
             self.sigmoid_output1 = y
             
@@ -107,7 +107,8 @@ class SEBlock2(nn.Module):
             #z = z.mean(axis=0).unsqueeze(0)
             z = self.sigmoid1(z)
             t = z.clone()
-            t[t < 0.03] = 0
+            t = t.mean(axis=0).unsqueeze(0)
+            #t[t < 0.03] = 0
             self.sigmoid_output2 = t
             
             #if self.training:

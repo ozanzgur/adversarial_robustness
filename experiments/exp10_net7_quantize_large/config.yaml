@@ -1,5 +1,5 @@
 script_path: train_finetune_adv.py
-n_repeat : 1
+n_repeat : 3
 data_unsupervised:
   path : data\cifar10.py
   batch_size : 20
@@ -9,7 +9,7 @@ data_supervised:
   batch_size : 25
   loader_sizes : [45000, 5000]
 model:
-  path : model\net6.py
+  path : experiments\exp10_net7_quantize_large\net7_tiny.py
   module_name : Net
 
 trainer_sup:
@@ -18,9 +18,9 @@ trainer_sup:
   part_reconstruction_loss_multiplier : 0
   model_name : checkpoint
   loss_fn : nll
-  n_epochs : 3
+  n_epochs : 5
   train_part_i : 2
-  checkpoint_path : experiments\exp9_net6
+  checkpoint_path : experiments\exp10_net7_quantize_large
   log_interval : 400
   finetune_n_layers : all
   optimizer:

@@ -7,10 +7,10 @@ DATASET_SIZE = 50000
 def torch_seed(seed=42):
     torch.manual_seed(seed)
 
-def get_train_loader(batch_size=10, loader_sizes = None, **kwargs):
+def get_train_loader(batch_size=10, loader_sizes = None, size=32, **kwargs):
     dataset = torchvision.datasets.CIFAR10('/files/', train=True, download=True,
                                 transform=torchvision.transforms.Compose([
-                                torchvision.transforms.Resize((32, 32)),
+                                torchvision.transforms.Resize((size, size)),
                                 torchvision.transforms.ToTensor()])
                                 )
     
@@ -31,29 +31,29 @@ def get_train_loader(batch_size=10, loader_sizes = None, **kwargs):
     else:
         return torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=True)
 
-def get_test_loader(batch_size=10, **kwargs):
+def get_test_loader(batch_size=10, size=32, **kwargs):
     return torch.utils.data.DataLoader(
     torchvision.datasets.CIFAR10('/files/', train=False, download=True,
                                 transform=torchvision.transforms.Compose([
-                                torchvision.transforms.Resize((32, 32)),
+                                torchvision.transforms.Resize((size, size)),
                                 torchvision.transforms.ToTensor()
                                 ])
                                 ),
     batch_size=batch_size, shuffle=True)
     
-def get_train_dataset(**kwargs):
+def get_train_dataset(size=32, **kwargs):
     train_dataset = torchvision.datasets.CIFAR10('/files/', train=False, download=True,
                                 transform=torchvision.transforms.Compose([
-                                torchvision.transforms.Resize((32, 32)),
+                                torchvision.transforms.Resize((size, size)),
                                 torchvision.transforms.ToTensor()
                                 ])
                                 )
     return train_dataset
 
-def get_test_dataset(**kwargs):
+def get_test_dataset(size=32, **kwargs):
     return torchvision.datasets.CIFAR10('/files/', train=False, download=True,
                                 transform=torchvision.transforms.Compose([
-                                torchvision.transforms.Resize((32, 32)),
+                                torchvision.transforms.Resize((size, size)),
                                 torchvision.transforms.ToTensor()
                                 ])
                                 )
