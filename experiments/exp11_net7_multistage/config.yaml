@@ -1,4 +1,4 @@
-script_path: train_finetune_adv.py
+script_path: train_finetune_adv_multistage.py
 n_repeat : 1
 adv_is_fast : True
 data_unsupervised:
@@ -10,8 +10,8 @@ data_supervised:
   batch_size : 25
   loader_sizes : [45000, 5000]
 model:
-  path : experiments\exp2_net7_tiny\net7_tiny.py
-  module_name : Net
+  path : experiments\exp11_net7_multistage\net7_multi.py
+  module_name : TwoStageNet
 
 trainer_sup:
   early_stopping : True
@@ -21,7 +21,7 @@ trainer_sup:
   loss_fn : nll
   n_epochs : 5
   train_part_i : 2
-  checkpoint_path : experiments\exp2_net7_tiny
+  checkpoint_path : experiments\exp11_net7_multistage
   log_interval : 400
   finetune_n_layers : all
   optimizer:

@@ -17,12 +17,14 @@ class Net(nn.Module):
         super(Net, self).__init__()
         
         self.downscale = nn.AvgPool2d(3, stride=3)
-        self.conv1 = nn.Conv2d(1, n_kernels, kernel_size=5, bias = True)
+        self.conv1 = nn.Conv2d(1, n_kernels, kernel_size=3, bias = True)
         self.bn1 = nn.BatchNorm2d(n_kernels)
-        self.activation = nn.Sigmoid()
-        self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
+        self.activation = nn.ReLU()
+        self.feature_gate = nn.Parameter(torch.ones(1, n_kernels, 7, 7), requires_grad=False)
+        self.pool = nn.MaxPool2d(2)
+        
         self.flatten1 = nn.Flatten(1)
-        self.fc2 = nn.Linear(20, 10)
+        self.fc2 = nn.Linear(180, 10)
         self.softmax = nn.LogSoftmax()
 
     def forward(self, x):
@@ -30,7 +32,8 @@ class Net(nn.Module):
         x = self.conv1(x)
         x = self.bn1(x)
         x = self.activation(x)
-        x = self.avgpool(x)
+        x = self.feature_gate * x
+        x = self.pool(x)
         x = self.flatten1(x)
         x = self.fc2(x)
         x = self.softmax(x)

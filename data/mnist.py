@@ -40,7 +40,7 @@ def get_test_loader(batch_size=10, **kwargs):
                                 torchvision.transforms.Normalize(
                                     (0.1307,), (0.3081,))
                                 ])),
-    batch_size=batch_size, shuffle=True)
+    batch_size=batch_size, shuffle=False)
     
 def get_train_dataset(**kwargs):
     train_dataset = torchvision.datasets.MNIST('/files/', train=True, download=True,
