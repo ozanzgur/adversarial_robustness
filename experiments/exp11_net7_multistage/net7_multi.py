@@ -45,6 +45,41 @@ class TinyNet(nn.Module):
             
         return x
     
+class TinyNet2(nn.Module):
+    def __init__(self, n_classes = 10, softmax = True, do_downscale = True, **kwargs):
+        n_kernels = 10
+        self.softmax = softmax
+        self.do_downscale = do_downscale
+        
+        super(TinyNet, self).__init__()
+        
+        if do_downscale:
+            self.downscale = nn.AvgPool2d(3, stride=3)
+        self.conv1 = nn.Conv2d(1, n_kernels, kernel_size=5, bias = True)
+        self.bn1 = nn.BatchNorm2d(n_kernels)
+        self.activation = nn.ReLU()
+        self.pool = nn.MaxPool2d(2)
+        
+        self.flatten1 = nn.Flatten(1)
+        self.fc2 = nn.Linear(40, n_classes)
+        if self.softmax:
+            self.softmax = nn.LogSoftmax()
+
+    def forward(self, x):
+        if self.do_downscale:
+            x = self.downscale(x)
+        x = self.conv1(x)
+        x = self.bn1(x)
+        x = self.activation(x)
+        x = self.pool(x)
+        x = self.flatten1(x)
+        x = self.fc2(x)
+        
+        if self.softmax:
+            x = self.softmax(x)
+            
+        return x
+    
 class Stage2Net(nn.Module):
     def __init__(self, n_classes = 10, softmax = True, do_downscale = True, **kwargs):
         n_kernels = 20
@@ -122,24 +157,32 @@ class TwoStageNet(nn.Module):
         stage2_closeness = stage2_closeness[:, 1] - stage2_closeness[:, 0]
         #print(stage2_idx[0])
         output = torch.ones((batch_size, 2 if self.training else 10), requires_grad=True).cuda() * -100
+        stage2_names = []
         
         for i_example in range(batch_size):
-            """if not self.training:
-                if stage1_output_softmax[i_example].max() > 0.8: # stage1_output[i_example].max() > 0.75 or  or stage2_closeness[i_example] < 0.15
-                    output[i_example] = stage1_output[i_example]"""
-                
-            #else:
+            used_stage1 = False
             stage2_name = self.model_template.format(stage2_idx[i_example, 0], stage2_idx[i_example, 1])
-            stage2_output = self.stage2_nets[stage2_name](x[i_example].unsqueeze(0))
+            stage2_names.append(stage2_name)
             
-            # Map 2 class output to 10 class output
-            #output[i_example] = stage2_output[0, 2]
-            if self.training:
-                output[i_example] = stage2_output[0]
+            if not self.training:
+                if stage1_output_softmax[i_example].max() > 0.3:
+                    output[i_example] = 0 if self.training else stage1_output[i_example]
+                    used_stage1 = True
                 
-            else:
-                output[i_example, stage2_idx[i_example, 0]] = stage2_output[0, 0]
-                output[i_example, stage2_idx[i_example, 1]] = stage2_output[0, 1]
+            """if stage2_closeness[i_example] < 0.15 and not used_stage1:
+                output[i_example] = 0 if self.training else stage1_output[i_example]
+                used_stage1 = True"""
+                
+            if not used_stage1:
+                
+                stage2_output = self.stage2_nets[stage2_name](x[i_example].unsqueeze(0))
+                
+                if self.training:
+                    output[i_example] = stage2_output[0]
+                    
+                else:
+                    output[i_example, stage2_idx[i_example, 0]] = stage2_output[0, 0]
+                    output[i_example, stage2_idx[i_example, 1]] = stage2_output[0, 1]
             
             """if stage2_idx[i_example, 0] == 1 and stage2_idx[i_example, 1] == 7:
                 print("Out:")
@@ -154,6 +197,6 @@ class TwoStageNet(nn.Module):
         output = self.softmax2(output)
         
         if self.output_stage1:
-            return [stage1_output, output]
+            return [stage1_output, output, stage2_names]
         else:
             return output

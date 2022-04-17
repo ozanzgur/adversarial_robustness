@@ -8,6 +8,7 @@ import torch.nn.functional as F
 import torch.optim as optim
 from torch.optim import lr_scheduler as optim_lr
 import torch.nn as nn
+from collections import defaultdict
 
 from .early_stopping import EarlyStopping
 from .model_utils import get_trainable_layers
@@ -15,6 +16,7 @@ from .model_utils import nll
 from .parts import SAVED_OUTPUT_NAME, SAVED_INPUT_NAME, PartManager
 from .reconstructions import batchnorm_inverse, conv_inverse, fc_inverse, conv_inverse_channelwise
 from .config import Config
+import pandas as pd
 
 def get_children(model: torch.nn.Module):
     # get children form model!
@@ -94,12 +96,15 @@ class ModelTrainer:
         for epoch in range(1, self.config.n_epochs + 1):
             self.model.train()
             
+            stage2_correct_counts = defaultdict(lambda: 0)
+            stage2_example_counts = defaultdict(lambda: 0)
+            
             # Training
             for batch_idx, (X_batch, y_batch) in enumerate(train_loader):
                 batch_size = X_batch.shape[0]
                 y_batch = y_batch.to(self.device)
                 self.optimizer.zero_grad()
-                [stage1_output, output] = self.model(X_batch.to(self.device))
+                [stage1_output, output, stage2_names] = self.model(X_batch.to(self.device))
                 
                 loss = None
                 if self.config.loss_fn == 'nll':
@@ -115,6 +120,15 @@ class ModelTrainer:
                     y_batch_best2 = torch.zeros(size=[y_batch_keep.shape[0]], requires_grad=True).type(torch.LongTensor).cuda()
                     y_batch_best2[y_batch_keep == idx_first_2[idx_keep, 0]] = 0
                     y_batch_best2[y_batch_keep == idx_first_2[idx_keep, 1]] = 1
+                    stage2_names = [stage2_names[i] for i, keep in enumerate(idx_keep) if keep]
+                    
+                    output_keep_logits = output_keep.data.max(1, keepdim=True)[1]
+                    for i in range(len(stage2_names)):
+                        n = stage2_names[i]
+                        stage2_example_counts[n] += 1
+                        if output_keep_logits[i] == y_batch_best2[i]:
+                            stage2_correct_counts[n] += 1
+                    
                     loss = nll(output_keep, y_batch_best2)
                 else:
                     raise AttributeError("config.trainer.loss_fn is invalid.")
@@ -129,20 +143,41 @@ class ModelTrainer:
                     self.train_losses.append(loss.item())
                     self.train_counter.append((batch_idx*64) + ((epoch-1)*len(train_loader.dataset)))
             
+            # Stage 2 accuracies
+            stage2_accuracies = {n: stage2_correct_counts[n] / stage2_example_counts[n] for n in stage2_example_counts.keys()}
+            
             # Validation
             if val_loader is not None:
+                stage2_correct_counts_val = defaultdict(lambda: 0)
+                stage2_example_counts_val = defaultdict(lambda: 0)
+                
+                
                 self.model.eval()
                 val_loss = 0
                 cls_loss = 0
                 n_total_examples = 0
                 cls_loss = 0
+                correct = 0
                 with torch.no_grad():
                     for X_batch, y_batch in val_loader:
+                        batch_size = X_batch.shape[0]
                         y_batch.to(self.device)
                         
                         n_examples = X_batch.size()[0]
                         n_total_examples += n_examples
-                        [stage1_output, output] = self.model(X_batch.to(self.device))
+                        [stage1_output, output, stage2_names] = self.model(X_batch.to(self.device))
+                        pred = output.data.max(1, keepdim=True)[1]
+                        y_view = y_batch.to(self.device).data.view_as(pred)
+                        correct += pred.eq(y_view).sum()
+                        
+                        for i_example in range(batch_size):
+                            if (stage1_output[i_example] - output[i_example]).sum() < 1e-3:
+                                continue
+                            
+                            stage2_name = stage2_names[i_example]
+                            if pred[i_example] == y_view[i_example]:
+                                stage2_correct_counts[stage2_name] += 1
+                            stage2_example_counts[stage2_name] += 1
                         
                         loss = None
                         cls_loss_batch = 0
@@ -154,12 +189,20 @@ class ModelTrainer:
                         val_loss += loss * n_examples
                         cls_loss += cls_loss_batch * n_examples
                     
+                    # Stage 2 accuracies
+                    stage2_accuracies_val = {n: stage2_correct_counts_val[n] / stage2_correct_counts_val[n] for n in stage2_correct_counts_val.keys()}
+                    df_results = pd.DataFrame({"val_acc": stage2_accuracies_val, "trn_acc": stage2_accuracies, "example_count": stage2_example_counts})
+                    df_results = df_results.sort_values(by="val_acc", ascending=False)
+                    print("stage2 metrics:")
+                    print(df_results)
+                    
                     val_loss = val_loss / n_total_examples
                     cls_loss = cls_loss / n_total_examples
+                    acc = correct / n_total_examples
                     if val_loss < best_val_loss:
                         best_val_loss = val_loss
                         self.save_model()
-                    print(f"Val Loss: {val_loss}, cls_loss: {cls_loss} (Best: {best_val_loss})")
+                    print(f"Val acc: {acc}, Val Loss: {val_loss}, cls_loss: {cls_loss} (Best: {best_val_loss})")
                     
                     if not self.es is None and self.es.step(val_loss):
                         break
