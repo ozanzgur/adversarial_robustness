@@ -66,9 +66,6 @@ class ModelTrainer:
         x = self.model.aux_reduce_conv(x)
         return x
     
-    def set_stage_2_enabled(self, value):
-        self.model.stage_2_enabled = value
-    
     def model_aux_loss(self, part):
         x_part = self.get_part_input(part)
         y_part = self.get_part_output(part)
@@ -99,13 +96,26 @@ class ModelTrainer:
             
             # Training
             for batch_idx, (X_batch, y_batch) in enumerate(train_loader):
+                batch_size = X_batch.shape[0]
+                y_batch = y_batch.to(self.device)
                 self.optimizer.zero_grad()
                 [stage1_output, output] = self.model(X_batch.to(self.device))
                 
                 loss = None
                 if self.config.loss_fn == 'nll':
-                    loss = nll(output, y_batch.to(self.device)) + nll(stage1_output, y_batch.to(self.device))
-                    
+                    #loss = nll(stage1_output, y_batch.to(self.device))
+                    idx_first_2 = stage1_output.argsort(axis=1)[:, -2:].sort(axis=1).values
+                    """print("OUT:")
+                    print(idx_first_2[0])
+                    print(y_batch[0])
+                    print(output[0])"""
+                    idx_keep = torch.logical_or(y_batch == idx_first_2[:, 0], y_batch == idx_first_2[:, 1])
+                    output_keep = output[idx_keep]
+                    y_batch_keep = y_batch[idx_keep]
+                    y_batch_best2 = torch.zeros(size=[y_batch_keep.shape[0]], requires_grad=True).type(torch.LongTensor).cuda()
+                    y_batch_best2[y_batch_keep == idx_first_2[idx_keep, 0]] = 0
+                    y_batch_best2[y_batch_keep == idx_first_2[idx_keep, 1]] = 1
+                    loss = nll(output_keep, y_batch_best2)
                 else:
                     raise AttributeError("config.trainer.loss_fn is invalid.")
 
@@ -121,21 +131,25 @@ class ModelTrainer:
             
             # Validation
             if val_loader is not None:
+                self.model.eval()
                 val_loss = 0
                 cls_loss = 0
                 n_total_examples = 0
                 cls_loss = 0
                 with torch.no_grad():
                     for X_batch, y_batch in val_loader:
+                        y_batch.to(self.device)
+                        
                         n_examples = X_batch.size()[0]
                         n_total_examples += n_examples
                         [stage1_output, output] = self.model(X_batch.to(self.device))
                         
                         loss = None
-                        cls_loss_batch = None
+                        cls_loss_batch = 0
                         if self.config.loss_fn == 'nll':
-                            cls_loss_batch = nll(output, y_batch.to(self.device))
-                            loss = cls_loss_batch + nll(stage1_output, y_batch.to(self.device))
+                            """cls_loss_batch = nll(output, y_batch.to(self.device))
+                            loss = cls_loss_batch + nll(stage1_output, y_batch.to(self.device))"""
+                            loss = nll(output, y_batch.to(self.device))
                             
                         val_loss += loss * n_examples
                         cls_loss += cls_loss_batch * n_examples

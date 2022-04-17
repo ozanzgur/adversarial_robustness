@@ -1,5 +1,6 @@
 from tools import utils, config, parts
-from tools import trainer_multistage as trainer
+from tools import trainer_multistage
+from tools import trainer
 import argparse
 from contextlib import redirect_stdout
 from tools.logging import log_print
@@ -119,12 +120,18 @@ if __name__ == "__main__":
                     part_manager.enable_part_training(i)
                 
                 part_manager.train_part_i = cfg.trainer_sup.train_part_i
-                trn = trainer.ModelTrainer(model=model, cfg=cfg.trainer_sup, part_manager=part_manager)
-                trn.set_stage_2_enabled(False)
-                trn.train(train_loader=train_loader_sup, val_loader=val_loader_sup)
-                trn.set_stage_2_enabled(True)
+                trn = trainer.ModelTrainer(model=model, cfg=cfg.trainer_sup_single_stage, part_manager=part_manager)
+                model.stage_2_enabled = False
                 trn.train(train_loader=train_loader_sup, val_loader=val_loader_sup)
                 
+                model.stage1.eval()
+                trn = trainer_multistage.ModelTrainer(model=model, cfg=cfg.trainer_sup, part_manager=part_manager)
+                model.stage_2_enabled = True
+                model.output_stage1 = True
+                
+                trn.train(train_loader=train_loader_sup, val_loader=val_loader_sup)
+                
+                model.output_stage1 = False
                 model.eval()
                 
                 is_fast = (not "adv_is_fast" in cfg) or cfg.adv_is_fast
