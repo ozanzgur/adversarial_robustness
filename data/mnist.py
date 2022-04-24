@@ -10,7 +10,7 @@ def torch_seed(seed=42):
 def get_train_loader(batch_size=10, loader_sizes = None, **kwargs):
     dataset = torchvision.datasets.MNIST('/files/', train=True, download=True,
                                 transform=torchvision.transforms.Compose([
-                                torchvision.transforms.Resize((29, 29)),
+                                #torchvision.transforms.Resize((29, 29)),
                                 torchvision.transforms.ToTensor(),
                                 torchvision.transforms.Normalize(
                                     (0.1307,), (0.3081,))
@@ -35,7 +35,7 @@ def get_test_loader(batch_size=10, **kwargs):
     return torch.utils.data.DataLoader(
     torchvision.datasets.MNIST('/files/', train=False, download=True,
                                 transform=torchvision.transforms.Compose([
-                                torchvision.transforms.Resize((29, 29)),
+                                #torchvision.transforms.Resize((29, 29)),
                                 torchvision.transforms.ToTensor(),
                                 torchvision.transforms.Normalize(
                                     (0.1307,), (0.3081,))
@@ -45,7 +45,7 @@ def get_test_loader(batch_size=10, **kwargs):
 def get_train_dataset(**kwargs):
     train_dataset = torchvision.datasets.MNIST('/files/', train=True, download=True,
                              transform=torchvision.transforms.Compose([
-                                torchvision.transforms.Resize((29, 29)),
+                                #torchvision.transforms.Resize((29, 29)),
                                torchvision.transforms.ToTensor(),
                                torchvision.transforms.Normalize(
                                  (0.1307,), (0.3081,))

@@ -14,7 +14,7 @@ model:
   module_name : TwoStageNet
 
 trainer_sup:
-  early_stopping : True
+  early_stopping : False
   enabled : True
   part_reconstruction_loss_multiplier : 0
   model_name : checkpoint
@@ -27,7 +27,7 @@ trainer_sup:
   optimizer:
     name : Adam
     #momentum : 0.5
-    lr : 0.01
+    lr : 0.0003
   lr_scheduler:
     name : LinearLR
     start_factor : 1.0

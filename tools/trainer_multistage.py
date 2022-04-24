@@ -176,8 +176,8 @@ class ModelTrainer:
                             
                             stage2_name = stage2_names[i_example]
                             if pred[i_example] == y_view[i_example]:
-                                stage2_correct_counts[stage2_name] += 1
-                            stage2_example_counts[stage2_name] += 1
+                                stage2_correct_counts_val[stage2_name] += 1
+                            stage2_example_counts_val[stage2_name] += 1
                         
                         loss = None
                         cls_loss_batch = 0
@@ -190,8 +190,8 @@ class ModelTrainer:
                         cls_loss += cls_loss_batch * n_examples
                     
                     # Stage 2 accuracies
-                    stage2_accuracies_val = {n: stage2_correct_counts_val[n] / stage2_correct_counts_val[n] for n in stage2_correct_counts_val.keys()}
-                    df_results = pd.DataFrame({"val_acc": stage2_accuracies_val, "trn_acc": stage2_accuracies, "example_count": stage2_example_counts})
+                    stage2_accuracies_val = {n: stage2_correct_counts_val[n] / stage2_example_counts_val[n] for n in stage2_correct_counts_val.keys()}
+                    df_results = pd.DataFrame({"val_acc": stage2_accuracies_val, "trn_acc": stage2_accuracies, "example_count_trn": stage2_example_counts, "example_count_val": stage2_example_counts_val})
                     df_results = df_results.sort_values(by="val_acc", ascending=False)
                     print("stage2 metrics:")
                     print(df_results)

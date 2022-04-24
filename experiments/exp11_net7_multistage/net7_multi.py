@@ -47,11 +47,11 @@ class TinyNet(nn.Module):
     
 class TinyNet2(nn.Module):
     def __init__(self, n_classes = 10, softmax = True, do_downscale = True, **kwargs):
-        n_kernels = 10
+        n_kernels = 15
         self.softmax = softmax
         self.do_downscale = do_downscale
         
-        super(TinyNet, self).__init__()
+        super(TinyNet2, self).__init__()
         
         if do_downscale:
             self.downscale = nn.AvgPool2d(3, stride=3)
@@ -61,7 +61,7 @@ class TinyNet2(nn.Module):
         self.pool = nn.MaxPool2d(2)
         
         self.flatten1 = nn.Flatten(1)
-        self.fc2 = nn.Linear(40, n_classes)
+        self.fc2 = nn.Linear(60, n_classes)
         if self.softmax:
             self.softmax = nn.LogSoftmax()
 
@@ -138,7 +138,7 @@ class TwoStageNet(nn.Module):
         for i1 in range(n_classes):
             for i2 in range(i1+1, n_classes):
                 model_name = self.model_template.format(i1, i2)
-                self.stage2_nets[model_name] = TinyNet(n_classes=2, softmax=False).cuda()
+                self.stage2_nets[model_name] = TinyNet2(n_classes=2, softmax=False).cuda()
                 #self.stage2_nets[model_name].train()
                 
         print(f"# stage 2 models: {len(self.stage2_nets)}")

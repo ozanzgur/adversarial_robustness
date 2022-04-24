@@ -34,16 +34,19 @@ def get_accuracy(model, device, test_loader, attack_on = True):
 
 from autoattack import AutoAttack
 
-def get_acc_autoattack(model, device, loader, fast = True):
+def get_acc_autoattack(model, device, loader, fast = True, eps = None):
+    if eps is None:
+        eps = 8/255
+        
     correct = 0
     n_examples = 0
 
     adversary = None
     
     if fast:
-        adversary = AutoAttack(model, norm='Linf', eps=8/255, version='custom', attacks_to_run=['apgd-ce', 'apgd-dlr'])
+        adversary = AutoAttack(model, norm='Linf', eps=eps, version='custom', attacks_to_run=['apgd-ce', 'apgd-dlr'])
     else:
-        adversary = AutoAttack(model, norm='Linf', eps=8/255)
+        adversary = AutoAttack(model, norm='Linf', eps=eps)
         
     x_all = []
     y_all = []
