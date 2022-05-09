@@ -42,6 +42,9 @@ class ModelTrainer:
         self.train_counter = []
         self.early_stopping = not hasattr(cfg, 'early_stopping') or cfg.early_stopping
         
+        if self.config.loss_fn == 'crossentropy':
+            self.loss = nn.CrossEntropyLoss()
+        
         if torch.cuda.is_available():
             self.device = torch.device("cuda:0")
         print(f"{self.config.model_name} to {self.device}")
@@ -110,6 +113,9 @@ class ModelTrainer:
                     i_part = self.part_manager.train_part_i
                     loss = self.model_aux_loss(self.part_manager.parts[i_part])
                     
+                elif self.config.loss_fn == 'crossentropy':
+                    loss = self.loss(output, y_batch.to(self.device))
+                    
                 else:
                     raise AttributeError("config.trainer.loss_fn is invalid.")
 
@@ -148,6 +154,11 @@ class ModelTrainer:
                         elif self.config.loss_fn == 'aux':
                             i_part = self.part_manager.train_part_i
                             loss = self.model_aux_loss(self.part_manager.parts[i_part])
+                            
+                        elif self.config.loss_fn == 'crossentropy':
+                            cls_loss_batch = self.loss(output, y_batch.to(self.device))
+                            loss = cls_loss_batch
+                            
                         val_loss += loss * n_examples
                         cls_loss += cls_loss_batch * n_examples
                     
