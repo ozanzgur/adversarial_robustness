@@ -7,7 +7,7 @@ data_unsupervised:
   loader_sizes : [1, 1]
 data_supervised:
   path : data\cifar10.py
-  batch_size : 25
+  batch_size : 100
   loader_sizes : [45000, 5000]
 model:
   path : experiments\exp12_regular_cifar10\resnet.py
@@ -19,7 +19,7 @@ trainer_sup:
   part_reconstruction_loss_multiplier : 0
   model_name : checkpoint
   loss_fn : crossentropy
-  n_epochs : 5
+  n_epochs : 10
   train_part_i : 2
   checkpoint_path : experiments\exp12_regular_cifar10
   log_interval : 400
@@ -27,9 +27,10 @@ trainer_sup:
   optimizer:
     name : Adam
     #momentum : 0.5
-    lr : 0.003
+    lr : 0.01
+    weight_decay : 0.0001
   lr_scheduler:
     name : LinearLR
     start_factor : 1.0
     end_factor : 0.1
-    total_iters : 50
+    total_iters : 20

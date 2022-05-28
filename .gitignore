@@ -8,6 +8,8 @@ plots/
 *.gz
 *.pth
 *.npy
+*.pt
+*.npy
 mnist_challenge/
 
 # Byte-compiled / optimized / DLL files

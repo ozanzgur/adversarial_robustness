@@ -33,7 +33,7 @@ class Net(nn.Module):
         #self.noise1 = NoiseLayer(std=1)
         self.relu4 = nn.ReLU()
         self.fc2 = nn.Linear(40, 10)
-        self.noise2 = NoiseLayer(std=1)
+        self.noise2 = NoiseLayer(std=0.02)
         self.softmax = nn.LogSoftmax()
 
     def forward(self, x):
