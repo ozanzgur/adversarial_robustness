@@ -49,7 +49,7 @@ def get_train_loader(batch_size=10, loader_sizes = None, size=32, **kwargs):
     else:
         return torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=True)
 
-def get_test_loader(batch_size=10, size=32, **kwargs):
+def get_test_loader(batch_size=1, size=32, **kwargs):
     return torch.utils.data.DataLoader(
     torchvision.datasets.CIFAR10('/files/', train=False, download=True,
                                 transform=valid_tfms

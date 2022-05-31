@@ -131,6 +131,7 @@ class ModelTrainer:
             
             # Validation
             if val_loader is not None:
+                self.model.eval()
                 val_loss = 0
                 cls_loss = 0
                 n_total_examples = 0

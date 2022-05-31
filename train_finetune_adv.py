@@ -87,7 +87,7 @@ if __name__ == "__main__":
         
         # Supervised dataset
         train_loader_sup, val_loader_sup = dataset_sup.get_train_loader(**cfg.data_supervised)
-        test_loader_sup = dataset_sup.get_test_loader(batch_size=25)
+        test_loader_sup = dataset_sup.get_test_loader(batch_size=1)
         
         # Unsupervised dataset
         train_loader, val_loader = dataset_unsup.get_train_loader(**cfg.data_unsupervised)

@@ -1,0 +1,1 @@
+python run_experiment.py experiments\exp13_cmpe597_cifar10_proj1\config.yaml
