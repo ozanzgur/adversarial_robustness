@@ -9,6 +9,8 @@ import torch
 import torchattacks
 from tqdm import tqdm
 import yaml
+from tools.lipschitz.lip_cst_comparison import compute_lipschitz_approximations
+from tools.lipschitz.lipschitz_utils import random_compute_dataset
 
 def get_accuracy(model, device, test_loader, attack_on = True):
     correct = 0
@@ -142,7 +144,14 @@ if __name__ == "__main__":
                 is_fast = (not "adv_is_fast" in cfg) or cfg.adv_is_fast
                 print(f"Autoattack fast version: {is_fast}")
                 get_acc_autoattack(model, trn.device, test_loader_sup, cfg, fast=is_fast)
-            
+
+                if (test_loader_sup.dataset.data[0].ndim == 3):
+                    third_dim = test_loader_sup.dataset.data[0].shape[2]
+                else:
+                    third_dim = 1
+                    
+                print(f"compute_lipschitz_approximations {test_loader_sup.dataset.data.shape, test_loader_sup.dataset.data[0].shape[0]}")
+                compute_lipschitz_approximations(model, random_compute_dataset(test_loader_sup.dataset.data[0].shape[0], channel = third_dim, scale=2))
         # print(f'Metrics:\n{metrics}, Mean: {np.mean(metrics)}')
         # print(f'Metrics adv:\n{metrics_adv}, Mean: {np.mean(metrics_adv)}')
         
