@@ -26,4 +26,4 @@ def do_attack(model, device, loader, fast = True, first_n = None):
         x_all = x_all[:first_n]
         y_all = y_all[:first_n]
         
-    return adversary.run_standard_evaluation(x_all, y_all, bs=250)
+    return adversary.run_standard_evaluation(x_all, y_all, bs=50)

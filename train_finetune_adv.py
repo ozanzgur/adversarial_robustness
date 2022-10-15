@@ -131,7 +131,6 @@ if __name__ == "__main__":
                 trn.train(train_loader=train_loader, val_loader=val_loader)"""
             
                 # Test
-                
                 """accuracy = trn.test_accuracy(test_loader_sup)
                 print(f"Accuracy: {accuracy}")
                 metrics.append(accuracy)
@@ -141,7 +140,7 @@ if __name__ == "__main__":
                 
                 model.eval()
                 
-                is_fast = (not "adv_is_fast" in cfg) or cfg.adv_is_fast
+                """is_fast = (not "adv_is_fast" in cfg) or cfg.adv_is_fast
                 print(f"Autoattack fast version: {is_fast}")
                 get_acc_autoattack(model, trn.device, test_loader_sup, cfg, fast=is_fast)
 
@@ -151,7 +150,7 @@ if __name__ == "__main__":
                     third_dim = 1
                     
                 print(f"compute_lipschitz_approximations {test_loader_sup.dataset.data.shape, test_loader_sup.dataset.data[0].shape[0]}")
-                compute_lipschitz_approximations(model, random_compute_dataset(test_loader_sup.dataset.data[0].shape[0], channel = third_dim, scale=2))
+                compute_lipschitz_approximations(model, random_compute_dataset(test_loader_sup.dataset.data[0].shape[0], channel = third_dim, scale=2))"""
         # print(f'Metrics:\n{metrics}, Mean: {np.mean(metrics)}')
         # print(f'Metrics adv:\n{metrics_adv}, Mean: {np.mean(metrics_adv)}')
         

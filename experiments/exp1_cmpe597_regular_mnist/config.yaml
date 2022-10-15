@@ -1,6 +1,6 @@
 script_path: train_finetune_adv.py
 n_repeat : 1
-adv_is_fast : False
+adv_is_fast : True
 autoattack_eps : 0.3
 data_unsupervised:
   path : data\mnist.py
